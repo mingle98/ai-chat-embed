@@ -1,4 +1,4 @@
-# ai-chat-embed
+# ai-chat-embed(AI助手组件)
 
 将 AI-Chat 聊天组件球嵌入任意网站，**只需一行 `<script>`，无需依赖任何框架、无需构建工具**。
 
