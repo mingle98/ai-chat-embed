@@ -1,0 +1,73 @@
+{
+  "name": "ai-chat-embed",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Framework-agnostic embed wrapper for ai-suspended-ball-chat",
+  "main": "dist/ai-chat-embed.min.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "default": "./dist/ai-chat-embed.min.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "dev": "concurrently -k \"npm:build:watch\" \"npm:serve\" \"npm:mock\"",
+    "dev:web": "concurrently -k \"npm:build:watch\" \"npm:serve\"",
+    "serve": "serve . -l 5173",
+    "mock": "node mock/server.js",
+    "build": "esbuild src/ai-chat-embed.js --bundle --format=iife --global-name=AIChatEmbed --minify --outfile=dist/ai-chat-embed.min.js",
+    "build:dev": "esbuild src/ai-chat-embed.js --bundle --format=iife --global-name=AIChatEmbed --sourcemap --outfile=dist/ai-chat-embed.js",
+    "build:watch": "esbuild src/ai-chat-embed.js --bundle --format=iife --global-name=AIChatEmbed --sourcemap --outfile=dist/ai-chat-embed.js --watch",
+    "test": "vitest run --environment jsdom",
+    "test:watch": "vitest --environment jsdom",
+    "test:coverage": "vitest run --environment jsdom --coverage",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.5",
+    "jsdom": "^24.1.3",
+    "express": "^4.21.2",
+    "rimraf": "^6.0.1",
+    "serve": "^14.2.5",
+    "esbuild": "^0.27.0",
+    "vitest": "^3.2.4"
+  },
+  "keywords": [
+    "ai",
+    "chat",
+    "embed",
+    "widget",
+    "vue3",
+    "react",
+    "angular",
+    "jquery",
+    "jsp",
+    "php",
+    "html",
+    "css",
+    "javascript",
+    "typescript",
+    "framework-agnostic",
+    "mermaid",
+    "echarts"
+  ],
+  "license": "MIT",
+  "author": "ai-chat-embed team",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "homepage": ""
+}

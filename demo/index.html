@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIChatEmbed Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        background: #f6f7f9;
+        color: #111827;
+      }
+      .demo-shell h2 {
+        margin: 0 0 4px;
+        font-size: 18px;
+      }
+      .demo-shell .tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 16px;
+        border-bottom: 2px solid #e5e7eb;
+      }
+      .demo-shell .tab-btn {
+        padding: 8px 18px;
+        border: none;
+        background: none;
+        font-size: 14px;
+        cursor: pointer;
+        color: #6b7280;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        border-radius: 0;
+      }
+      .demo-shell .tab-btn.active {
+        color: #1f6feb;
+        border-bottom-color: #1f6feb;
+        font-weight: 600;
+      }
+      .demo-shell .tab-pane { display: none; }
+      .demo-shell .tab-pane.active { display: block; }
+      .demo-shell .card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+        margin-bottom: 16px;
+      }
+      .demo-shell .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .demo-shell .row.tight { gap: 10px; margin-bottom: 10px; }
+      .demo-shell label {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 220px;
+        font-size: 12px;
+        color: #374151;
+      }
+      .demo-shell .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(140px, 1fr));
+        gap: 8px 12px;
+      }
+      .demo-shell .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #374151;
+      }
+      .demo-shell .checkbox-item input {
+        width: 14px;
+        height: 14px;
+      }
+      .demo-shell .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(80px, 1fr));
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .demo-shell .stat-box {
+        border: 1px solid #dbe4ef;
+        border-radius: 8px;
+        background: #f8fafc;
+        padding: 8px 10px;
+      }
+      .demo-shell .stat-box .label {
+        font-size: 11px;
+        color: #64748b;
+      }
+      .demo-shell .stat-box .value {
+        font-size: 16px;
+        margin-top: 2px;
+        color: #0f172a;
+        font-weight: 700;
+      }
+      .demo-shell input[type="text"] {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 7px 10px;
+        font-size: 13px;
+        outline: none;
+      }
+      .demo-shell input[type="text"]:focus { border-color: #1f6feb; }
+      .demo-shell .panel-mount-hint {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 12px;
+      }
+      .demo-shell .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+      .demo-shell button.btn {
+        border: 0;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-size: 13px;
+        cursor: pointer;
+        background: #1f6feb;
+        color: #fff;
+      }
+      .demo-shell button.btn.secondary { background: #4b5563; }
+      .demo-shell button.btn.danger { background: #b91c1c; }
+      .demo-shell .log-box {
+        background: #0f172a;
+        color: #d1fae5;
+        border-radius: 8px;
+        min-height: 160px;
+        max-height: 260px;
+        padding: 10px 12px;
+        overflow: auto;
+        white-space: pre-wrap;
+        font-size: 12px;
+        font-family: "SF Mono", Consolas, monospace;
+      }
+      .demo-shell .hint { color: #6b7280; font-size: 13px; margin-bottom: 14px; }
+      /* Panel tab：全宽铺满，不用 card 包一层 */
+      #tab-panel .panel-layout {
+        display: flex;
+        height: calc(100vh - 220px);
+        min-height: 520px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+        background: #fff;
+      }
+      #tab-panel .panel-controls {
+        flex-shrink: 0;
+        width: 400px;
+        background: #f8fafc;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        padding: 16px 14px;
+        gap: 8px;
+        overflow-y: auto;
+      }
+      #tab-panel .panel-controls .hint {
+        font-size: 11.5px;
+        line-height: 1.6;
+        margin-bottom: 4px;
+      }
+      #tab-panel .panel-controls .btns {
+        flex-direction: column;
+        margin-bottom: 0;
+        gap: 6px;
+      }
+      #tab-panel .panel-controls .btn {
+        width: 100%;
+        text-align: center;
+        padding: 8px 10px;
+      }
+      #tab-panel .panel-controls .log-box {
+        flex: 1;
+        min-height: 80px;
+        max-height: none;
+        font-size: 11px;
+      }
+      /* 右侧预览区 */
+      #tab-panel .panel-preview {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f0f2f5;
+        padding: 20px;
+      }
+      #panel-mount-area {
+        width: 414px;
+        height: 100%;
+        max-height: 700px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        position: relative;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      }
+      /* Vue 挂载根节点和 ChatPanel 撑满容器 */
+      #ai-chat-panel-root {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      #ai-chat-panel-root > div {
+        width: 100% !important;
+        height: 100% !important;
+      }
+      /* Loading overlay */
+      .embed-loading {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: #fff;
+        border-radius: 10px;
+        z-index: 10;
+        color: #6b7280;
+        font-size: 13px;
+        pointer-events: none;
+      }
+      .embed-loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid #e5e7eb;
+        border-top-color: #1f6feb;
+        border-radius: 50%;
+        animation: embed-spin 0.8s linear infinite;
+      }
+      @keyframes embed-spin {
+        to { transform: rotate(360deg); }
+      }
+      /* Ball loading bar */
+      .ball-loading-bar {
+        height: 3px;
+        width: 100%;
+        border-radius: 2px;
+        background: #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      .ball-loading-bar-inner {
+        height: 100%;
+        width: 30%;
+        background: #1f6feb;
+        border-radius: 2px;
+        animation: embed-slide 1s ease-in-out infinite;
+      }
+      @keyframes embed-slide {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(400%); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-shell">
+      <h2>AIChatEmbed 本地调试 Demo</h2>
+      <p class="hint">悬浮球模式会出现在页面右侧；面板模式内嵌在下方容器中。</p>
+
+      <!-- Shared fields -->
+      <div class="card">
+        <div class="row">
+          <label>
+            API URL
+            <input type="text" id="urlInput" value="http://localhost:3600/api/chat?stream=1" style="min-width:320px" />
+          </label>
+          <label>
+            appName
+            <input type="text" id="appNameInput" value="demo-app" />
+          </label>
+          <label>
+            domainName
+            <input type="text" id="domainInput" value="debug-user-001" />
+          </label>
+          <label>
+            title
+            <input type="text" id="titleInput" value="调试助手" />
+          </label>
+          <label>
+            customPlaceholder
+            <input type="text" id="placeholderInput" value="请输入消息..." />
+          </label>
+          <label>
+            customIconUrl（可选）
+            <input type="text" id="iconInput" value="" placeholder="https://..." />
+          </label>
+        </div>
+        <div class="row tight">
+          <div style="width:100%;font-size:12px;color:#64748b;">开关配置</div>
+          <div class="checkbox-grid">
+            <label class="checkbox-item"><input id="cfgStreaming" type="checkbox" checked />enableStreaming</label>
+            <label class="checkbox-item"><input id="cfgContext" type="checkbox" checked />enableContext</label>
+            <label class="checkbox-item"><input id="cfgLocalStorage" type="checkbox" checked />enableLocalStorage</label>
+            <label class="checkbox-item"><input id="cfgVoiceInput" type="checkbox" />enableVoiceInput</label>
+            <label class="checkbox-item"><input id="cfgShowHeader" type="checkbox" checked />showHeader</label>
+            <label class="checkbox-item"><input id="cfgShowCloseButton" type="checkbox" checked />showCloseButton</label>
+            <label class="checkbox-item"><input id="cfgShowClearButton" type="checkbox" />showClearButton</label>
+            <label class="checkbox-item"><input id="cfgShowThemeToggle" type="checkbox" />showThemeToggle</label>
+            <label class="checkbox-item"><input id="cfgShowFeedbackButton" type="checkbox" />showFeedbackButton</label>
+            <label class="checkbox-item"><input id="cfgAllowHistorySearch" type="checkbox" />allowHistorySearch</label>
+            <label class="checkbox-item"><input id="cfgEnableFullscreenToggle" type="checkbox" />enableFullscreenToggle</label>
+          </div>
+        </div>
+        <div class="row tight">
+          <div style="width:100%;font-size:12px;color:#64748b;">回调统计（两种模式共用同一套 callbacks）</div>
+          <div class="stats-grid" style="width:420px;">
+            <div class="stat-box"><div class="label">onUserMessage</div><div class="value" id="statUser">0</div></div>
+            <div class="stat-box"><div class="label">onAssistantMessage</div><div class="value" id="statAssistant">0</div></div>
+            <div class="stat-box"><div class="label">onError</div><div class="value" id="statError">0</div></div>
+          </div>
+          <div class="btns" style="margin:0 0 0 10px;">
+            <button class="btn secondary" id="simulateCallbacksBtn">模拟触发回调</button>
+            <button class="btn danger" id="resetStatsBtn">重置回调计数</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="ball">悬浮球模式（ball）</button>
+        <button class="tab-btn" data-tab="panel">面板模式（panel）</button>
+      </div>
+
+      <!-- Tab: ball -->
+      <div class="tab-pane active" id="tab-ball">
+        <div class="card">
+          <p class="hint">初始化后，悬浮球出现在页面右侧，点击展开聊天面板。</p>
+          <div id="ballLoadingBar" class="ball-loading-bar" style="display:none;">
+            <div class="ball-loading-bar-inner"></div>
+          </div>
+          <div class="btns">
+            <button class="btn" id="ballInitBtn">初始化悬浮球</button>
+            <button class="btn secondary" id="ballApplyBtn">应用当前配置</button>
+            <button class="btn secondary" id="ballUpdateBtn">更新标题</button>
+            <button class="btn danger" id="ballDestroyBtn">销毁</button>
+          </div>
+          <div class="row tight" style="align-items:flex-end;">
+            <label style="min-width:280px;">
+              主动发送消息（ball）
+              <input type="text" id="ballSendInput" value="请介绍一下你的能力" />
+            </label>
+            <button class="btn" id="ballSendBtn">主动发消息</button>
+            <button class="btn secondary" id="ballStateBtn">读取状态</button>
+          </div>
+          <p class="hint" style="margin-top:-8px;">提示：`showClearButton` 需要有历史消息时才会显示。</p>
+          <div class="log-box" id="ballLog"></div>
+        </div>
+      </div>
+
+      <!-- Tab: panel -->
+      <div class="tab-pane" id="tab-panel">
+        <div class="panel-layout">
+          <!-- 左侧控制栏 -->
+          <div class="panel-controls">
+            <p class="hint">ChatPanel 内嵌在右侧容器中，适合嵌入页面固定区域（侧边栏、弹窗等）。</p>
+            <div class="btns">
+              <button class="btn" id="panelInitBtn">初始化面板</button>
+              <button class="btn secondary" id="panelApplyBtn">应用当前配置</button>
+              <button class="btn secondary" id="panelUpdateBtn">更新标题</button>
+              <button class="btn danger" id="panelDestroyBtn">销毁</button>
+            </div>
+            <label style="min-width:100%;">
+              主动发送消息（panel）
+              <input type="text" id="panelSendInput" value="帮我总结今天的测试目标" />
+            </label>
+            <div class="btns" style="margin:0;">
+              <button class="btn" id="panelSendBtn">主动发消息</button>
+              <button class="btn secondary" id="panelStateBtn">读取状态</button>
+            </div>
+            <div class="log-box" id="panelLog"></div>
+          </div>
+          <!-- 右侧预览区（居中展示 414px 宽的面板） -->
+          <div class="panel-preview">
+            <div id="panel-mount-area">
+              <div class="embed-loading" id="panelLoadingOverlay">
+                <div class="embed-loading-spinner"></div>
+                <span>加载中，请稍候...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../dist/ai-chat-embed.min.js"></script>
+    <script>
+      // ── Tab switching ─────────────────────────────────────────────
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+          document.querySelectorAll(".tab-pane").forEach((p) => p.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+        });
+      });
+
+      // ── Logger ────────────────────────────────────────────────────
+      function makeLogger(elId) {
+        const el = document.getElementById(elId);
+        return function log(...args) {
+          const line = `[${new Date().toLocaleTimeString()}] ${args
+            .map((x) => (typeof x === "string" ? x : JSON.stringify(x)))
+            .join(" ")}`;
+          el.textContent += line + "\n";
+          el.scrollTop = el.scrollHeight;
+        };
+      }
+
+      const ballLog = makeLogger("ballLog");
+      const panelLog = makeLogger("panelLog");
+      const statUserEl = document.getElementById("statUser");
+      const statAssistantEl = document.getElementById("statAssistant");
+      const statErrorEl = document.getElementById("statError");
+      const callbackStats = {
+        onUserMessage: 0,
+        onAssistantMessage: 0,
+        onError: 0,
+      };
+
+      function renderStats() {
+        statUserEl.textContent = String(callbackStats.onUserMessage);
+        statAssistantEl.textContent = String(callbackStats.onAssistantMessage);
+        statErrorEl.textContent = String(callbackStats.onError);
+      }
+      renderStats();
+
+      // ── Shared options builder ────────────────────────────────────
+      function baseOptions() {
+        const customIcon = document.getElementById("iconInput").value.trim();
+        const enableStreaming = document.getElementById("cfgStreaming").checked;
+        let apiUrl = document.getElementById("urlInput").value.trim();
+        if (apiUrl.includes("localhost:3600/api/chat")) {
+          try {
+            const u = new URL(apiUrl);
+            u.searchParams.set("stream", enableStreaming ? "1" : "0");
+            apiUrl = u.toString();
+          } catch {
+            // keep original url when parsing fails
+          }
+        }
+        return {
+          url: apiUrl,
+          appName: document.getElementById("appNameInput").value.trim(),
+          domainName: document.getElementById("domainInput").value.trim(),
+          title: document.getElementById("titleInput").value.trim() || "调试助手",
+          customPlaceholder: document.getElementById("placeholderInput").value.trim() || "请输入消息...",
+          customIconUrl: customIcon || undefined,
+          enableStreaming,
+          enableContext: document.getElementById("cfgContext").checked,
+          enableLocalStorage: document.getElementById("cfgLocalStorage").checked,
+          enableVoiceInput: document.getElementById("cfgVoiceInput").checked,
+          showHeader: document.getElementById("cfgShowHeader").checked,
+          showCloseButton: document.getElementById("cfgShowCloseButton").checked,
+          showClearButton: document.getElementById("cfgShowClearButton").checked,
+          showThemeToggle: document.getElementById("cfgShowThemeToggle").checked,
+          showFeedbackButton: document.getElementById("cfgShowFeedbackButton").checked,
+          allowHistorySearch: document.getElementById("cfgAllowHistorySearch").checked,
+          enableFullscreenToggle: document.getElementById("cfgEnableFullscreenToggle").checked,
+        };
+      }
+
+      function withCallbacks(log) {
+        return {
+          onUserMessage: (msg) => {
+            callbackStats.onUserMessage += 1;
+            renderStats();
+            log("onUserMessage:", msg);
+          },
+          onAssistantMessage: (msg) => {
+            callbackStats.onAssistantMessage += 1;
+            renderStats();
+            log("onAssistantMessage:", msg);
+          },
+          onError: (err) => {
+            callbackStats.onError += 1;
+            renderStats();
+            log("onError:", err && err.message ? err.message : String(err));
+          },
+        };
+      }
+
+      document.getElementById("simulateCallbacksBtn").addEventListener("click", () => {
+        const cbs = withCallbacks(ballLog);
+        cbs.onUserMessage("模拟用户消息");
+        cbs.onAssistantMessage("模拟助手消息");
+        cbs.onError(new Error("模拟错误"));
+        panelLog("simulate callbacks done");
+      });
+
+      document.getElementById("resetStatsBtn").addEventListener("click", () => {
+        callbackStats.onUserMessage = 0;
+        callbackStats.onAssistantMessage = 0;
+        callbackStats.onError = 0;
+        renderStats();
+        ballLog("callback stats reset");
+        panelLog("callback stats reset");
+      });
+
+      function applyBallConfig(auto = false) {
+        if (!ballInstance) return;
+        ballInstance.update({
+          ...baseOptions(),
+          callbacks: withCallbacks(ballLog),
+        });
+        if (!auto) ballLog("apply config success");
+      }
+
+      function applyPanelConfig(auto = false) {
+        if (!panelInstance) return;
+        panelInstance.update({
+          ...baseOptions(),
+          callbacks: withCallbacks(panelLog),
+        });
+        if (!auto) panelLog("apply config success");
+      }
+
+      // ── Ball mode ─────────────────────────────────────────────────
+      let ballTitleVer = 1;
+      let ballInstance = null;
+
+      document.getElementById("ballInitBtn").addEventListener("click", async () => {
+        try {
+          ballInstance = await AIChatEmbed.init({
+            ...baseOptions(),
+            mode: "ball",
+            ...createEmbedLifecycle("ball"),
+            callbacks: withCallbacks(ballLog),
+          });
+          ballLog("init success (mode: ball)");
+        } catch (e) {
+          ballLog("init failed:", e.message);
+        }
+      });
+
+      document.getElementById("ballUpdateBtn").addEventListener("click", () => {
+        try {
+          if (!ballInstance) throw new Error("未初始化");
+          ballTitleVer++;
+          ballInstance.update({ title: `调试助手 v${ballTitleVer}` });
+          ballLog(`update: title=调试助手 v${ballTitleVer}`);
+        } catch (e) {
+          ballLog("update failed:", e.message);
+        }
+      });
+
+      document.getElementById("ballApplyBtn").addEventListener("click", () => {
+        try {
+          if (!ballInstance) throw new Error("未初始化");
+          applyBallConfig(false);
+        } catch (e) {
+          ballLog("apply config failed:", e.message);
+        }
+      });
+
+      document.getElementById("ballDestroyBtn").addEventListener("click", () => {
+        try {
+          if (!ballInstance) throw new Error("未初始化");
+          ballInstance.destroy();
+          ballInstance = null;
+          ballTitleVer = 1;
+          ballLog("destroy success");
+        } catch (e) {
+          ballLog("destroy failed:", e.message);
+        }
+      });
+
+      document.getElementById("ballSendBtn").addEventListener("click", () => {
+        try {
+          if (!ballInstance) throw new Error("未初始化");
+          const text = document.getElementById("ballSendInput").value.trim();
+          if (!text) throw new Error("消息不能为空");
+          ballInstance.sendMessage(text);
+          ballLog("sendMessage success:", text);
+        } catch (e) {
+          ballLog("sendMessage failed:", e.message);
+        }
+      });
+
+      document.getElementById("ballStateBtn").addEventListener("click", () => {
+        try {
+          if (!ballInstance) throw new Error("未初始化");
+          const state = ballInstance.getChatState();
+          ballLog("getChatState:", state);
+        } catch (e) {
+          ballLog("getChatState failed:", e.message);
+        }
+      });
+
+      // ── Panel mode ────────────────────────────────────────────────
+      let panelTitleVer = 1;
+      let panelInstance = null;
+
+      document.getElementById("panelInitBtn").addEventListener("click", async () => {
+        try {
+          panelInstance = await AIChatEmbed.init({
+            ...baseOptions(),
+            mode: "panel",
+            mountTo: "#panel-mount-area",
+            containerId: "ai-chat-panel-root",
+            ...createEmbedLifecycle("panel"),
+            callbacks: withCallbacks(panelLog),
+          });
+          panelLog("init success (mode: panel)");
+        } catch (e) {
+          panelLog("init failed:", e.message);
+        }
+      });
+
+      document.getElementById("panelUpdateBtn").addEventListener("click", () => {
+        try {
+          if (!panelInstance) throw new Error("未初始化");
+          panelTitleVer++;
+          panelInstance.update({ title: `内嵌面板助手 v${panelTitleVer}` });
+          panelLog(`update: title=内嵌面板助手 v${panelTitleVer}`);
+        } catch (e) {
+          panelLog("update failed:", e.message);
+        }
+      });
+
+      document.getElementById("panelApplyBtn").addEventListener("click", () => {
+        try {
+          if (!panelInstance) throw new Error("未初始化");
+          applyPanelConfig(false);
+        } catch (e) {
+          panelLog("apply config failed:", e.message);
+        }
+      });
+
+      // ── Realtime apply for form controls ──────────────────────────
+      let realtimeApplyTimer = null;
+      function scheduleRealtimeApply() {
+        if (realtimeApplyTimer) clearTimeout(realtimeApplyTimer);
+        realtimeApplyTimer = setTimeout(() => {
+          applyBallConfig(true);
+          applyPanelConfig(true);
+        }, 120);
+      }
+
+      // Boolean switches
+      [
+        "cfgStreaming",
+        "cfgContext",
+        "cfgLocalStorage",
+        "cfgVoiceInput",
+        "cfgShowHeader",
+        "cfgShowCloseButton",
+        "cfgShowClearButton",
+        "cfgShowThemeToggle",
+        "cfgShowFeedbackButton",
+        "cfgAllowHistorySearch",
+        "cfgEnableFullscreenToggle",
+      ].forEach((id) => {
+        const el = document.getElementById(id);
+        el?.addEventListener("change", scheduleRealtimeApply);
+      });
+
+      // Text inputs
+      [
+        "urlInput",
+        "appNameInput",
+        "domainInput",
+        "titleInput",
+        "placeholderInput",
+        "iconInput",
+      ].forEach((id) => {
+        const el = document.getElementById(id);
+        el?.addEventListener("input", scheduleRealtimeApply);
+        el?.addEventListener("change", scheduleRealtimeApply);
+      });
+
+      document.getElementById("panelDestroyBtn").addEventListener("click", () => {
+        try {
+          if (!panelInstance) throw new Error("未初始化");
+          panelInstance.destroy();
+          panelInstance = null;
+          panelTitleVer = 1;
+          panelLog("destroy success");
+        } catch (e) {
+          panelLog("destroy failed:", e.message);
+        }
+      });
+
+      document.getElementById("panelSendBtn").addEventListener("click", () => {
+        try {
+          if (!panelInstance) throw new Error("未初始化");
+          const text = document.getElementById("panelSendInput").value.trim();
+          if (!text) throw new Error("消息不能为空");
+          panelInstance.sendMessage(text);
+          panelLog("sendMessage success:", text);
+        } catch (e) {
+          panelLog("sendMessage failed:", e.message);
+        }
+      });
+
+      document.getElementById("panelStateBtn").addEventListener("click", () => {
+        try {
+          if (!panelInstance) throw new Error("未初始化");
+          const state = panelInstance.getChatState();
+          panelLog("getChatState:", state);
+        } catch (e) {
+          panelLog("getChatState failed:", e.message);
+        }
+      });
+
+      // ── Loading helpers (driven by embed callbacks) ───────────────
+      const ballLoadingBar = document.getElementById("ballLoadingBar");
+      const panelLoadingOverlay = document.getElementById("panelLoadingOverlay");
+
+      function setBallLoading(loading) {
+        ballLoadingBar.style.display = loading ? "block" : "none";
+      }
+      function setPanelLoading(loading) {
+        panelLoadingOverlay.style.display = loading ? "flex" : "none";
+      }
+      function createEmbedLifecycle(mode) {
+        const log = mode === "panel" ? panelLog : ballLog;
+        return {
+          onEmbedLoading(loading, meta) {
+            if (mode === "panel") setPanelLoading(loading);
+            else setBallLoading(loading);
+            log(`onEmbedLoading: ${loading ? "start" : "end"}`, meta || {});
+          },
+          onEmbedReady(meta) {
+            log("onEmbedReady:", meta || {});
+          },
+          onEmbedError(error, meta) {
+            log("onEmbedError:", error?.message || String(error), meta || {});
+          }
+        };
+      }
+
+      // ── Auto init on load ─────────────────────────────────────────
+      window.addEventListener("load", async () => {
+        // Ball
+        ballLog("page loaded, auto init ball...");
+        try {
+          ballInstance = await AIChatEmbed.init({
+            ...baseOptions(),
+            mode: "ball",
+            ...createEmbedLifecycle("ball"),
+            callbacks: withCallbacks(ballLog),
+          });
+          ballLog("auto init success");
+        } catch (e) {
+          ballLog("auto init failed:", e.message);
+        }
+
+        // Panel
+        panelLog("page loaded, auto init panel...");
+        try {
+          panelInstance = await AIChatEmbed.init({
+            ...baseOptions(),
+            mode: "panel",
+            mountTo: "#panel-mount-area",
+            containerId: "ai-chat-panel-root",
+            ...createEmbedLifecycle("panel"),
+            callbacks: withCallbacks(panelLog),
+          });
+          panelLog("auto init success");
+        } catch (e) {
+          panelLog("auto init failed:", e.message);
+        }
+      });
+    </script>
+  </body>
+</html>
