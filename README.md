@@ -286,8 +286,8 @@ chat.destroy();
 
 ## 七、chatLibUrl版本
 - 正式版本: https://unpkg.com/ai-suspended-ball-chat@latest/dist/suspended-ball-chat.umd.js
-- alpha版本: https://unpkg.com/ai-suspended-ball-chat@0.3.63-alpha.1/dist/suspended-ball-chat.umd.js
-- beta版本: https://unpkg.com/ai-suspended-ball-chat@0.3.63-beta.1/dist/suspended-ball-chat.umd.js
+- alpha版本: https://unpkg.com/ai-suspended-ball-chat@0.3.64-alpha.1/dist/suspended-ball-chat.umd.js
+- beta版本: https://unpkg.com/ai-suspended-ball-chat@0.3.64-beta.1/dist/suspended-ball-chat.umd.js
 
 ### Q: 不同版本功能上是否有差异?
 
