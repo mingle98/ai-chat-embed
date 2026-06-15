@@ -33,6 +33,8 @@ var AIChatEmbed = (() => {
   };
   var instances = {};
   var depsPromise = null;
+  var scriptLoadPromises = /* @__PURE__ */ new Map();
+  var initPendingPromises = /* @__PURE__ */ new Map();
   function safeInvoke(fn, ...args) {
     if (typeof fn !== "function") return;
     try {
@@ -49,19 +51,36 @@ var AIChatEmbed = (() => {
     if (typeof checkReady === "function" && checkReady()) {
       return Promise.resolve();
     }
-    return new Promise((resolve, reject) => {
-      const existing = document.querySelector(`script[data-ai-chat-embed-src="${url}"]`);
-      if (existing) {
-        if (existing.getAttribute("data-ai-chat-embed-loaded") === "1") {
-          resolve();
-          return;
-        }
-        existing.addEventListener("load", () => resolve(), { once: true });
-        existing.addEventListener("error", () => reject(new Error(`Failed loading script: ${url}`)), {
-          once: true
-        });
-        return;
+    if (scriptLoadPromises.has(url)) {
+      return scriptLoadPromises.get(url);
+    }
+    const existing = document.querySelector(`script[data-ai-chat-embed-src="${url}"]`);
+    if (existing) {
+      const loadedFlag = existing.getAttribute("data-ai-chat-embed-loaded");
+      const errorFlag = existing.getAttribute("data-ai-chat-embed-error");
+      if (loadedFlag === "1") {
+        const resolved = Promise.resolve();
+        scriptLoadPromises.set(url, resolved);
+        return resolved;
       }
+      if (errorFlag === "1") {
+        existing.remove();
+      } else {
+        const pendingPromise = new Promise((resolve, reject) => {
+          existing.addEventListener("load", () => resolve(), { once: true });
+          existing.addEventListener("error", () => {
+            existing.setAttribute("data-ai-chat-embed-error", "1");
+            reject(new Error(`Failed loading script: ${url}`));
+          }, { once: true });
+        });
+        pendingPromise.catch(() => {
+          scriptLoadPromises.delete(url);
+        });
+        scriptLoadPromises.set(url, pendingPromise);
+        return pendingPromise;
+      }
+    }
+    const loadPromise = new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = url;
       script.async = true;
@@ -70,9 +89,17 @@ var AIChatEmbed = (() => {
         script.setAttribute("data-ai-chat-embed-loaded", "1");
         resolve();
       };
-      script.onerror = () => reject(new Error(`Failed loading script: ${url}`));
+      script.onerror = () => {
+        script.setAttribute("data-ai-chat-embed-error", "1");
+        reject(new Error(`Failed loading script: ${url}`));
+      };
       document.head.appendChild(script);
     });
+    loadPromise.catch(() => {
+      scriptLoadPromises.delete(url);
+    });
+    scriptLoadPromises.set(url, loadPromise);
+    return loadPromise;
   }
   function findChatLibrary(newKeys) {
     const candidates = [
@@ -207,81 +234,89 @@ var AIChatEmbed = (() => {
       safeInvoke(userOptions.onEmbedReady, loadingMeta);
       return instances[instanceId].publicApi;
     }
-    const startedAt = Date.now();
-    safeInvoke(userOptions.onEmbedLoading, true, loadingMeta);
-    try {
-      let callComponentMethod = function(methodName, ...args) {
-        const target = componentRef.value;
-        if (!target || typeof target[methodName] !== "function") {
-          throw new Error(`Method "${methodName}" is unavailable before component ready.`);
-        }
-        return target[methodName](...args);
-      };
-      const { vue, chatLib } = await ensureDependencies(rootOptions);
-      const { container, createdContainer } = ensureContainer(rootOptions);
-      const componentProps = vue.reactive(stripEmbedKeys(userOptions));
-      const componentRef = vue.ref(null);
-      const component = mode === "panel" ? chatLib.ChatPanel : chatLib.SuspendedBallChat;
-      const app = vue.createApp({
-        name: "AIChatEmbedRoot",
-        render() {
-          return vue.h(component, { ...componentProps, ref: componentRef });
-        }
-      });
-      if (typeof chatLib.install === "function") {
-        app.use(chatLib);
-      }
-      app.mount(container);
-      const publicApi = {
-        update(nextOptions = {}) {
-          if (!instances[instanceId]) throw new Error("Instance already destroyed.");
-          Object.assign(componentProps, stripEmbedKeys(nextOptions));
-        },
-        destroy() {
-          if (!instances[instanceId]) return;
-          app.unmount();
-          if (createdContainer && container.parentNode) {
-            container.parentNode.removeChild(container);
-          }
-          delete instances[instanceId];
-          if (Object.keys(instances).length === 0) {
-            depsPromise = null;
-          }
-        },
-        invoke(methodName, ...args) {
-          return callComponentMethod(methodName, ...args);
-        }
-      };
-      const publicApiProxy = new Proxy(publicApi, {
-        get(target, prop, receiver) {
-          if (Reflect.has(target, prop)) {
-            return Reflect.get(target, prop, receiver);
-          }
-          if (typeof prop === "string" && !["then", "catch", "finally"].includes(prop)) {
-            return (...args) => target.invoke(prop, ...args);
-          }
-          return void 0;
-        }
-      });
-      instances[instanceId] = {
-        app,
-        componentProps,
-        componentRef,
-        container,
-        createdContainer,
-        publicApi: publicApiProxy
-      };
-      safeInvoke(userOptions.onEmbedReady, {
-        ...loadingMeta,
-        elapsedMs: Date.now() - startedAt
-      });
-      return publicApiProxy;
-    } catch (error) {
-      safeInvoke(userOptions.onEmbedError, error, loadingMeta);
-      throw error;
-    } finally {
-      safeInvoke(userOptions.onEmbedLoading, false, loadingMeta);
+    if (initPendingPromises.has(instanceId)) {
+      return initPendingPromises.get(instanceId);
     }
+    const initPromise = (async () => {
+      const startedAt = Date.now();
+      safeInvoke(userOptions.onEmbedLoading, true, loadingMeta);
+      try {
+        let callComponentMethod = function(methodName, ...args) {
+          const target = componentRef.value;
+          if (!target || typeof target[methodName] !== "function") {
+            throw new Error(`Method "${methodName}" is unavailable before component ready.`);
+          }
+          return target[methodName](...args);
+        };
+        const { vue, chatLib } = await ensureDependencies(rootOptions);
+        const { container, createdContainer } = ensureContainer(rootOptions);
+        const componentProps = vue.reactive(stripEmbedKeys(userOptions));
+        const componentRef = vue.ref(null);
+        const component = mode === "panel" ? chatLib.ChatPanel : chatLib.SuspendedBallChat;
+        const app = vue.createApp({
+          name: "AIChatEmbedRoot",
+          render() {
+            return vue.h(component, { ...componentProps, ref: componentRef });
+          }
+        });
+        if (typeof chatLib.install === "function") {
+          app.use(chatLib);
+        }
+        app.mount(container);
+        const publicApi = {
+          update(nextOptions = {}) {
+            if (!instances[instanceId]) throw new Error("Instance already destroyed.");
+            Object.assign(componentProps, stripEmbedKeys(nextOptions));
+          },
+          destroy() {
+            if (!instances[instanceId]) return;
+            app.unmount();
+            if (createdContainer && container.parentNode) {
+              container.parentNode.removeChild(container);
+            }
+            delete instances[instanceId];
+            if (Object.keys(instances).length === 0) {
+              depsPromise = null;
+            }
+          },
+          invoke(methodName, ...args) {
+            return callComponentMethod(methodName, ...args);
+          }
+        };
+        const publicApiProxy = new Proxy(publicApi, {
+          get(target, prop, receiver) {
+            if (Reflect.has(target, prop)) {
+              return Reflect.get(target, prop, receiver);
+            }
+            if (typeof prop === "string" && !["then", "catch", "finally"].includes(prop)) {
+              return (...args) => target.invoke(prop, ...args);
+            }
+            return void 0;
+          }
+        });
+        instances[instanceId] = {
+          app,
+          componentProps,
+          componentRef,
+          container,
+          createdContainer,
+          publicApi: publicApiProxy
+        };
+        safeInvoke(userOptions.onEmbedReady, {
+          ...loadingMeta,
+          elapsedMs: Date.now() - startedAt
+        });
+        return publicApiProxy;
+      } catch (error) {
+        safeInvoke(userOptions.onEmbedError, error, loadingMeta);
+        throw error;
+      } finally {
+        safeInvoke(userOptions.onEmbedLoading, false, loadingMeta);
+        initPendingPromises.delete(instanceId);
+      }
+    })();
+    initPendingPromises.set(instanceId, initPromise);
+    return initPromise;
   }
   var AIChatEmbedCore = {
     init

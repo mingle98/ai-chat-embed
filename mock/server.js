@@ -109,17 +109,33 @@ app.post("/api/chat-nonstream", (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`[mock] listening on http://localhost:${PORT}`);
-  // eslint-disable-next-line no-console
-  console.log("[mock] endpoints:");
-  // eslint-disable-next-line no-console
-  console.log("  GET  /health");
-  // eslint-disable-next-line no-console
-  console.log("  POST /api/chat?stream=1|0");
-  // eslint-disable-next-line no-console
-  console.log("  POST /api/chat-stream");
-  // eslint-disable-next-line no-console
-  console.log("  POST /api/chat-nonstream");
-});
+function startServer(port, maxRetries = 5) {
+  const server = app.listen(port, () => {
+    // eslint-disable-next-line no-console
+    console.log(`[mock] listening on http://localhost:${port}`);
+    // eslint-disable-next-line no-console
+    console.log("[mock] endpoints:");
+    // eslint-disable-next-line no-console
+    console.log("  GET  /health");
+    // eslint-disable-next-line no-console
+    console.log("  POST /api/chat?stream=1|0");
+    // eslint-disable-next-line no-console
+    console.log("  POST /api/chat-stream");
+    // eslint-disable-next-line no-console
+    console.log("  POST /api/chat-nonstream");
+  });
+
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE" && maxRetries > 0) {
+      // eslint-disable-next-line no-console
+      console.log(`[mock] Port ${port} is in use, trying ${port + 1}...`);
+      startServer(port + 1, maxRetries - 1);
+    } else {
+      // eslint-disable-next-line no-console
+      console.error("[mock] Failed to start server:", err);
+      process.exit(1);
+    }
+  });
+}
+
+startServer(PORT);

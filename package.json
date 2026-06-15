@@ -64,10 +64,10 @@
   "author": "ai-chat-embed team",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/mingle98/ai-chat-embed.git"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/mingle98/ai-chat-embed/issues"
   },
-  "homepage": ""
+  "homepage": "https://github.com/mingle98/ai-chat-embed#readme"
 }
