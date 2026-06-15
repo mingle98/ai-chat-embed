@@ -79,6 +79,8 @@ nunit-*.xml
 [Rr]eleasePS/
 dlldata.c
 
+.vscode
+
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
@@ -427,3 +429,5 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+node_modules
