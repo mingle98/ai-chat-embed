@@ -228,7 +228,7 @@ chat.destroy();
 | `containerId` | string | `"ai-chat-embed-root"` / `"ai-chat-panel-root"` | 挂载容器的 `id`，ball/panel 模式各有默认值 |
 | `vueUrl` | string | unpkg Vue3 CDN | 自定义 Vue3 全局构建地址 |
 | `lodashUrl` | string | unpkg lodash CDN | 自定义 lodash 全局构建地址（需包含 `_.cloneDeep`） |
-| `chatLibUrl` | string | unpkg 原组件 UMD 地址 | 自定义原组件 UMD 加载地址 |
+| `chatLibUrl` | string | unpkg 原组件 UMD 地址 | 自定义原组件 UMD 加载地址,可以按需按选择版本,默认‘正式版’ |
 | `onEmbedLoading` | function | - | 封装层资源加载状态回调：`(loading, meta)` |
 | `onEmbedReady` | function | - | 封装层初始化完成回调：`(meta)` |
 | `onEmbedError` | function | - | 封装层初始化失败回调：`(error, meta)` |
@@ -245,6 +245,23 @@ chat.destroy();
 ## 高级扩展能力支持
 - 如需支持 Mermaid 渲染，请在页面中提前引入：`https://unpkg.com/mermaid@11.10.1/dist/mermaid.min.js`
 - 如需支持 ECharts 渲染，请在页面中提前引入：`https://unpkg.com/echarts@5.0.0/dist/echarts.min.js`
+
+## chatLibUrl版本
+- 正式版本: https://unpkg.com/ai-suspended-ball-chat@latest/dist/suspended-ball-chat.umd.js
+- alpha版本: https://unpkg.com/ai-suspended-ball-chat@0.3.61-alpha.1/dist/suspended-ball-chat.umd.js
+- beta版本: https://unpkg.com/ai-suspended-ball-chat@0.3.61-beta.1/dist/suspended-ball-chat.umd.js
+
+### Q: 不同版本功能上是否有差异?
+
+A: 是的,当前有三个版本: 正式版、beta版本、alpha版本。他们的差异如下:
+
+- **正式版**: 稳定版,功能最新且齐全,但此版本不支持“**独立协议的深度思考模式**”,但是你可以通过后端将“思考内容”用`<details><summary >`包裹间接实现这个功能.
+  
+- **beta版本**: 这是一个差异版本,对齐正式版90%的功能,支持“**独立协议的深度思考模式**”,但是此版本不支持“渲染自定义组件”等功能。
+  
+- **alpha版本**: 这是一个实验版本, 对齐正式版100%的功能, 唯一的差异是此版本已经将“对话列表虚拟化”了以提升性能,此版本和主版本一样不支持“**独立协议的深度思考模式**”, 可能存在一些未知Bug,谨慎使用.
+
+**总结: 根据您的需求选择需要的版本, 无特殊需求建议使用正式版。**
 
 ## License
 
