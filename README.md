@@ -4,6 +4,14 @@
 
 > 本包基于 [ai-suspended-ball-chat](https://www.npmjs.com/package/ai-suspended-ball-chat) 封装，将其能力扩展到任意前端技术栈。
 
+![Snipaste_2025-08-31_19-48-18.png](https://luckycola.com.cn/public/imgs/luckycola_Imghub_forever_8sbgSs4M17686524429047868.jpeg)
+
+**《组件落地场景体验1-AI简历助手》**: [点击直达案例1🔗](https://luckycola.com.cn/public/resume/?t=123456789#/resume)
+
+**《组件落地场景体验2-AI编程助手》**: [点击直达案例2🔗](https://luckycola.com.cn/public/dist/onlineCodeEditor.html?t=123456789#/editor)
+
+> **🔔 温馨提示:** 如果您觉得阅读文档困难,也可以选择咨询*在线AI助手*: [🤖点击直达咨询→](https://luckycola.com.cn/public/dist/aiAgent.html?openChat=1&t=123456789#/)
+
 ---
 
 ## ✨ 特性
