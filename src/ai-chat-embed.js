@@ -310,6 +310,7 @@ async function init(userOptions = {}) {
           delete instances[instanceId];
           if (Object.keys(instances).length === 0) {
             depsPromise = null;
+            scriptLoadPromises.clear();
           }
         },
         invoke(methodName, ...args) {
