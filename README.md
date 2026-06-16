@@ -273,6 +273,8 @@ chat.destroy();
 
 > 其余所有配置（`url`、`appName`、`domainName`、`title`、`callbacks`、`enableStreaming` 等）会直接透传给底层 `SuspendedBallChat` 组件。完整配置参考原包文档：[ai-suspended-ball-chat](https://www.npmjs.com/package/ai-suspended-ball-chat)
 
+_⚠️值得注意点是:在这个组件中使用`ai-suspended-ball-chat`支持的配置时需要使用**驼峰**的写法,例如:domainName(而不是写domain-name)._
+
 ## 五、适用场景
 
 - 营销页、活动页快速集成 AI 客服

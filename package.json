@@ -1,6 +1,6 @@
 {
   "name": "ai-chat-embed",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": false,
   "description": "Framework-agnostic embed wrapper for ai-suspended-ball-chat",
   "main": "dist/ai-chat-embed.min.js",
