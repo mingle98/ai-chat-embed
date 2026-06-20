@@ -288,8 +288,8 @@ _⚠️值得注意点是:在这个组件中使用`ai-suspended-ball-chat`支持
 
 ## 七、chatLibUrl版本
 - 正式版本: https://unpkg.com/ai-suspended-ball-chat@latest/dist/suspended-ball-chat.umd.js
-- alpha版本: https://unpkg.com/ai-suspended-ball-chat@0.3.64-alpha.1/dist/suspended-ball-chat.umd.js
-- beta版本: https://unpkg.com/ai-suspended-ball-chat@0.3.64-beta.1/dist/suspended-ball-chat.umd.js
+- alpha版本: https://unpkg.com/ai-suspended-ball-chat@0.3.68-alpha.1/dist/suspended-ball-chat.umd.js
+- beta版本: https://unpkg.com/ai-suspended-ball-chat@0.3.68-beta.1/dist/suspended-ball-chat.umd.js
 
 ### Q: 不同版本功能上是否有差异?
 
